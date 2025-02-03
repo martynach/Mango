@@ -5,6 +5,7 @@ using Mango.Services.ShoppingCartAPI.Data;
 using Mango.Services.ShoppingCartAPI.Extensions;
 using Mango.Services.ShoppingCartAPI.Middlewares;
 using Mango.Services.ShoppingCartAPI.Services;
+using Mango.Services.ShoppingCartAPI.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,16 +20,19 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<BackendApiAuthenticationHttpClientHandler>();
+
 builder.Services.AddHttpClient("product", client =>
 {
     client.BaseAddress = new Uri(Utility.ProductApiBaseUrl);
-});
+}).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
 
 
 builder.Services.AddHttpClient("coupon", client =>
 {
     client.BaseAddress = new Uri(Utility.CouponApiBaseUrl);
-});
+}).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
 
 
 builder.Services.AddEndpointsApiExplorer();

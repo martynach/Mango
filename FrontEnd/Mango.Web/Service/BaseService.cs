@@ -96,7 +96,27 @@ namespace Mango.Web.Service
                 if (apiResponse.IsSuccessStatusCode)
                 {
                     var apiContent = await apiResponse.Content.ReadAsStringAsync();
-                    var apiResponseDto = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
+                    // work around - some services return unified type ResponseDto but some return actual response object/message directly
+                    ResponseDto apiResponseDto;
+                    try
+                    {
+                        apiResponseDto = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
+
+                        if (apiResponseDto is null)
+                        {
+                            apiResponseDto = new ResponseDto();
+                        }
+                        
+                        if (apiResponseDto.IsSuccess && apiResponseDto.Result is null &&
+                            String.IsNullOrWhiteSpace(apiResponseDto.Message))
+                        {
+                            apiResponseDto.Result = apiContent;
+                        }
+                    }
+                    catch (JsonSerializationException e)
+                    {
+                        apiResponseDto =  new ResponseDto { Message = apiContent};
+                    }
                     return apiResponseDto;
                 }
 

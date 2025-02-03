@@ -60,7 +60,6 @@ public class CouponApiController : ControllerBase
     
     [HttpGet]
     [Route("GetByCode/{code}")]
-    [AllowAnonymous] // todo to remove
     public ActionResult<ResponseDto<CouponDto>> GetCouponByCode([FromRoute] string code)
     {
         var response = new ResponseDto<CouponDto>();
