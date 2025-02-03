@@ -6,7 +6,7 @@ namespace Mango.MessageBus;
 
 public class MessageBus: IMessageBus
 {
-    private string connectionString = "**********";
+    private string connectionString = "todo";
     public async Task PublishMessage(object message, string topicOrQueueName)
     {
         Console.WriteLine("PublishMessage method: start");
