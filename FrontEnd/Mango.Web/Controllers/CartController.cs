@@ -28,6 +28,12 @@ namespace Mango.Web.Controllers
         {
             return View(await LoadCartDtoBasedOnLoggedInUser());
         }
+        
+        [Authorize]
+        public async Task<IActionResult> EmailCart(CartDto cartDto)
+        {
+            return View(await LoadCartDtoBasedOnLoggedInUser());
+        }
 
         // public async Task<IActionResult> AddToCart()
         // {
@@ -93,24 +99,13 @@ namespace Mango.Web.Controllers
             ResponseDto? response = await _cartService.RemoveFromCartAsync(cartDetailsId);
             if (response != null & response.IsSuccess)
             {
-                TempData["success"] = "Cart updated successfully";
+                TempData["success"] = $"Cart updated successfully. {response.Message}";
                 return RedirectToAction(nameof(CartIndex));
             }
             return View();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> ApplyCoupon(CartDto cartDto)
-        {
-            
-            ResponseDto? response = await _cartService.ApplyCouponAsync(cartDto);
-            if (response != null & response.IsSuccess)
-            {
-                TempData["success"] = "Cart updated successfully";
-                return RedirectToAction(nameof(CartIndex));
-            }
-            return View();
-        }
+
         //
         // [HttpPost]
         // public async Task<IActionResult> EmailCart(CartDto cartDto)
@@ -138,6 +133,22 @@ namespace Mango.Web.Controllers
             }
             return View();
         }
+        
+        [HttpPost]
+        public async Task<IActionResult> ApplyCoupon(CartDto cartDto)
+        {
+            
+            ResponseDto? response = await _cartService.ApplyCouponAsync(cartDto);
+            if (response != null & response.IsSuccess)
+            {
+                TempData["success"] = "Cart updated successfully";
+                return RedirectToAction(nameof(CartIndex));
+            }
+            TempData["error"] = "Coupon not applied";
+            return RedirectToAction(nameof(CartIndex));
+
+            // return View(cartDto); the view ApplyCoupon not found
+        }
 
 
         private async Task<CartDto> LoadCartDtoBasedOnLoggedInUser()
@@ -145,14 +156,21 @@ namespace Mango.Web.Controllers
             var userId = User.Claims.Where(u => u.Type == JwtRegisteredClaimNames.Sub)?.FirstOrDefault()?.Value;
             if (userId is null)
             {
+                TempData["error"] = "Cannot load shopping cart because no user id is found!";
                 return new CartDto();
             }
             ResponseDto? response = await _cartService.GetCartByUserIdAsync(userId);
-            if(response!=null & response.IsSuccess)
+
+            if (response is null)
+            {
+                return new CartDto();
+            }
+            if(response.IsSuccess)
             {
                 CartDto cartDto = JsonConvert.DeserializeObject<CartDto>(Convert.ToString(response.Result));
                 return cartDto;
-            }
+            } 
+            TempData["error"] = "Cannot load shopping cart because as request failed!";
             return new CartDto();
         }
     }
