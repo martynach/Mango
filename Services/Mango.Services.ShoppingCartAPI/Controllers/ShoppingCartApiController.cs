@@ -1,15 +1,9 @@
-﻿using AutoMapper;
-using Mango.Services.ShoppingCart.Services;
-using Mango.Services.ShoppingCartAPI.Data;
-using Mango.Services.ShoppingCartAPI.Exceptions;
-using Mango.Services.ShoppingCartAPI.Models;
+﻿using Mango.MessageBus;
 using Mango.Services.ShoppingCartAPI.Models.Dto;
 using Mango.Services.ShoppingCartAPI.Models.Dto.ApplyCoupon;
 using Mango.Services.ShoppingCartAPI.Models.Dto.Upsert;
 using Mango.Services.ShoppingCartAPI.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Mango.Services.ShoppingCartAPI.Controllers;
 
@@ -18,11 +12,15 @@ namespace Mango.Services.ShoppingCartAPI.Controllers;
 public class ShoppingCartApiController : ControllerBase
 {
     private readonly IShoppingCartService _shoppingCartService;
+    private readonly IMessageBus _messageBus;
+    private readonly IConfiguration _configuration;
 
 
-    public ShoppingCartApiController(IShoppingCartService shoppingCartService)
+    public ShoppingCartApiController(IShoppingCartService shoppingCartService, IMessageBus messageBus, IConfiguration configuration)
     {
         _shoppingCartService = shoppingCartService;
+        _messageBus = messageBus;
+        _configuration = configuration;
     }
 
     [HttpPost("CartUpsert")]
@@ -50,6 +48,14 @@ public class ShoppingCartApiController : ControllerBase
     public async Task<object> ApplyCoupon([FromBody] ApplyCouponDto applyCouponDto)
     {
         await _shoppingCartService.ApplyCoupon(applyCouponDto);
+        return Ok();
+    }
+    
+    [HttpPost("EmailCartRequest")]
+    public async Task<object> EmailCartRequest([FromBody] CartDto cartDto)
+    {
+        var queueName = _configuration.GetValue<string>("QueueAndTopicNames:ShoppingCartEmail");
+        await _messageBus.PublishMessage(cartDto, queueName);
         return Ok();
     }
     
