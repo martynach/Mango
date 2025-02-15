@@ -54,7 +54,7 @@ public class ShoppingCartApiController : ControllerBase
     [HttpPost("EmailCartRequest")]
     public async Task<object> EmailCartRequest([FromBody] CartDto cartDto)
     {
-        var queueName = _configuration.GetValue<string>("QueueAndTopicNames:ShoppingCartEmail");
+        var queueName = _configuration.GetValue<string>("QueueAndTopicNames:ShoppingCartEmailQueue");
         await _messageBus.PublishMessage(cartDto, queueName);
         return Ok();
     }
