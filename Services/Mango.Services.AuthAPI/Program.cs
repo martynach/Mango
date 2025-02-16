@@ -1,4 +1,5 @@
 using dot_net_api;
+using Mango.MessageBus;
 using Mango.Services.AuthAPI.Data;
 using Mango.Services.AuthAPI.Models;
 using Mango.Services.AuthAPI.Services;
@@ -31,7 +32,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.Configure<AuthenticationSettings>(builder.Configuration.GetSection("Authentication"));
 
 builder.Services.AddScoped<IJwtTokenGeneratorService, JwtTokenGeneratorService>();
-
+builder.Services.AddScoped<IMessageBus, MessageBus>();
 
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
