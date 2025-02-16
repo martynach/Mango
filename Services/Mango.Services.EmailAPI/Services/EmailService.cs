@@ -35,6 +35,13 @@ public class EmailService : IEmailService
         await LogAndEmail(message.ToString(), cartDto.CartHeader.Email);
     }
 
+    public async Task RegisterUserEmailAndLog(string userEmail)
+    {
+        string message = $"User registration successful. <br/> Email: {userEmail}";
+        await LogAndEmail(message, "admin@gmail.com");
+    }
+
+
     private async Task LogAndEmail(string message, string email)
     {
         EmailLogger emailLog = new()

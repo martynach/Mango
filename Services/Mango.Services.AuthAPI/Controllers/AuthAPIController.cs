@@ -1,4 +1,5 @@
-﻿using Mango.Services.AuthAPI.Data;
+﻿using Mango.MessageBus;
+using Mango.Services.AuthAPI.Data;
 using Mango.Services.AuthAPI.Models.Dtos;
 using Mango.Services.AuthAPI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,20 +11,24 @@ namespace Mango.Services.AuthAPI.Controllers;
 public class AuthApiController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IMessageBus _messageBus;
+    private readonly IConfiguration _configuration;
 
-    public AuthApiController(IUserService userService)
+    public AuthApiController(IUserService userService, IMessageBus messageBus, IConfiguration configuration)
     {
         _userService = userService;
+        _messageBus = messageBus;
+        _configuration = configuration;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDto dto)
     {
         var response = await _userService.RegisterUser(dto);
-        // if (!response.IsSuccess)
-        // {
-        //     return BadRequest(response);
-        // }
+
+        var queueName = _configuration.GetValue<string>("QueueAndTopicNames:RegisteredUsersQueue");
+        await _messageBus.PublishMessage(dto.Email, queueName);
+
         return Ok(response);
     }
     
